@@ -422,6 +422,10 @@ def main() -> int:
         logging.error('{}: No such file or directory'.format(outputpath))
         return errno.ENOENT
 
+    if not args.files:
+        logging.warn('No files specified')
+        return errno.EINVAL
+
     for filename in args.files:
         filepaths = composeFilePaths(Path(filename), Path(outputpath))
 
@@ -440,7 +444,7 @@ def main() -> int:
                     exitcode = errno.EEXIST
                     continue
 
-            if not exitcode:
+            if exitcode:
                 return exitcode
 
         processFile(filepaths, args.portalwidth, args.portallength)
