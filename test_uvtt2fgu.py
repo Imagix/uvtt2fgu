@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 from pathlib import Path
 import unittest
 import uvtt2fgu
@@ -42,6 +43,27 @@ class TestComposeFilePaths(unittest.TestCase):
         self.assertEqual(jpgpath, Path('xyz/filename.jpg'))
         self.assertEqual(xmlpath, Path('xyz/filename.xml'))
 
+class TestPortalAdjust(unittest.TestCase):
+    def test_percent(self) -> None:
+        '''Test the custom argument parser'''
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--foo', nargs=1, action=uvtt2fgu.PortalAdjust)
+        args = parser.parse_args('--foo 25%'.split())
+        self.assertEqual(args.foo, '25%')
+
+    def test_pixels(self) -> None:
+        '''Test the custom argument parser'''
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--foo', nargs=1, action=uvtt2fgu.PortalAdjust)
+        args = parser.parse_args('--foo 99px'.split())
+        self.assertEqual(args.foo, '99px')
+
+    def test_other(self) -> None:
+        '''Test the custom argument parser'''
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--foo', nargs=1, action=uvtt2fgu.PortalAdjust)
+        with self.assertRaises(argparse.ArgumentTypeError):
+            args = parser.parse_args('--foo 99'.split())
 
 if __name__ == '__main__':
     unittest.main()

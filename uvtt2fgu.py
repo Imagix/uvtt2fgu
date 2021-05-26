@@ -15,7 +15,8 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
 
-def composeId(id) -> ET.Element:
+def composeId(id: int) -> ET.Element:
+    '''Converts an int to an XML element 'id' with the value'''
     elem = ET.Element('id')
     elem.text = str(id)
     return elem
@@ -27,7 +28,23 @@ class Point(object):
         self.y = y
 
 
+def translatePortalAdjustment(gridsize: int, adjustment: str) -> float:
+    '''Converts from the adjustment value to the actual pixel count
+
+    Either ##% of the grid size, or a ##px literal pixels
+    '''
+    if adjustment[-1] == '%':
+        val = max(gridsize * float(adjustment[:-1]) / 100, 1) / 2
+    elif adjustment[-2:] == 'px':
+        val = float(adjustment[:-2]) / 2
+    else:
+        raise ValueError('Invalid input: {}'.format(adjustment))
+
+    return val
+
+
 def convertLineToRect(line, width, length, angle):
+    '''Essentially turns a line into a fat line'''
     widthModifyX = width * sin(angle)
     widthModifyY = width * cos(angle)
     lengthModifyX = abs(length * cos(angle))
@@ -58,29 +75,28 @@ def convertLineToRect(line, width, length, angle):
 
 
 class UVTTFile(object):
-    filepath = None
-    data = None
-    resolution = None
-    gridsize = None
-    image = None
-
     class Occluder(object):
+        '''Represents a generic Occluder'''
         def __init__(self):
             self.points = []
 
         def xmlElemStart(self, id) -> ET.Element:
+            '''Create the initial XML element for an occluder'''
             elem = ET.Element('occluder')
             elem.append(composeId(id))
             return elem
 
         def addPoint(self, coord: Point):
+            '''Add a point to this occluder'''
             self.points.append(coord)
 
     class WallOccluder(Occluder):
+        '''Represents a Wall Occluder'''
         def xmlElem(self, id) -> ET.Element:
+            '''Build up the XML representation of a wall'''
             elem = self.xmlElemStart(id)
 
-            logging.debug('  {} {} points'.format(id, len(self.points)))
+            logging.debug('  Occluder(Wall) {} {} points'.format(id, len(self.points)))
             pointsElem = ET.Element('points')
             pt = []
             for point in self.points:
@@ -92,16 +108,21 @@ class UVTTFile(object):
             return elem
 
     class PortalOccluder(Occluder):
-        def __init__(self, rotation):
+        '''Represents a Portal occluder, could be a door or window'''
+        def __init__(self, rotation, widthAdj, lengthAdj):
             super().__init__()
             self.rotation = rotation
+            self.widthAdj = widthAdj
+            self.lengthAdj = lengthAdj
 
         def addLine(self, point1, point2):
+            '''Add a line to this portal'''
             self.points.extend(convertLineToRect(
-                (point1, point2), 50, 0, self.rotation))
+                (point1, point2), self.widthAdj, self.lengthAdj, self.rotation))
 
-        def xmlPoints(self, elem) -> None:
-            logging.debug('  {} {} points'.format(id, len(self.points)))
+        def xmlPoints(self, elem, id) -> None:
+            '''Add the points data to the XML representation'''
+            logging.debug('  Occluder(Portal) {} {} points'.format(id, len(self.points)))
             pointsElem = ET.Element('points')
             pt = []
             for point in self.points:
@@ -117,10 +138,12 @@ class UVTTFile(object):
             elem.append(closeElem)
 
     class DoorOccluder(PortalOccluder):
+        '''Represents a Door occluder'''
         def xmlElem(self, id) -> ET.Element:
+            '''Build up the XML representation of a door'''
             elem = self.xmlElemStart(id)
 
-            self.xmlPoints(elem)
+            self.xmlPoints(elem, id)
 
             singleSided = ET.Element('single_sided')
             elem.append(singleSided)
@@ -131,17 +154,19 @@ class UVTTFile(object):
             return elem
 
     class WindowOccluder(PortalOccluder):
+        '''Represents a Window occluder'''
         def xmlElem(self, id) -> ET.Element:
+            '''Build up the XML representation of a window'''
             elem = self.xmlElemStart(id)
 
-            self.xmlPoints(elem)
+            self.xmlPoints(elem, id)
 
             allowvision = ET.Element('allow_vision')
             elem.append(allowvision)
 
             return elem
 
-    def __init__(self, filepath: Path, *args, **kwargs):
+    def __init__(self, filepath: Path, portalWidthAdjustment: str, portalLengthAdjustment: str, *args, **kwargs):
         self.filepath = filepath
         with self.filepath.open(mode='r') as f:
             self.data = json.load(f)
@@ -150,6 +175,14 @@ class UVTTFile(object):
         self.resolution = (mapsize['x'], mapsize['y'])
         self.gridsize = self.data['resolution']['pixels_per_grid']
         self.image = base64.decodebytes(self.data['image'].encode('utf-8'))
+        self.portalLengthAdjustmentPixels = translatePortalAdjustment(
+            self.gridsize, portalLengthAdjustment)
+        logging.debug('  Adding {} pixels to portal length'.format(
+            self.portalLengthAdjustmentPixels))
+        self.portalWidthAdjustmentPixels = translatePortalAdjustment(
+            self.gridsize, portalWidthAdjustment)
+        logging.debug('  Adding {} pixels to portal width'.format(
+            self.portalWidthAdjustmentPixels))
 
     def translateCoord(self, coord, dimension) -> float:
         '''Translate from a grid coordinate to a pixel coordinate'''
@@ -164,14 +197,17 @@ class UVTTFile(object):
         return self.translateCoord(-y_coord, self.resolution[1])
 
     def translatePoint(self, coord) -> Point:
+        '''Translate an x, y element from the uvtt data to a Point'''
         return Point(self.translateX(coord['x']), self.translateY(coord['y']))
 
     def composeGrid(self) -> ET.Element:
+        '''Build up the XML representation of the map's grid size'''
         elem = ET.Element('gridsize')
         elem.text = '{},{}'.format(self.gridsize, self.gridsize)
         return elem
 
     def composeWall(self, los) -> Occluder:
+        '''Build up an Occluder representation of a wall'''
         wall = self.WallOccluder()
 
         for coord in los:
@@ -180,10 +216,16 @@ class UVTTFile(object):
         return wall
 
     def composePortal(self, portal) -> Occluder:
+        '''Build up an Occluder representation of one portal
+        
+        Dungeondraft appears to represent windows as essentially an open door
+        '''
         if portal['closed'] == False:
-            portalElem = self.WindowOccluder(portal['rotation'])
+            portalElem = self.WindowOccluder(
+                portal['rotation'], self.portalWidthAdjustmentPixels, self.portalLengthAdjustmentPixels)
         else:
-            portalElem = self.DoorOccluder(portal['rotation'])
+            portalElem = self.DoorOccluder(
+                portal['rotation'], self.portalWidthAdjustmentPixels, self.portalLengthAdjustmentPixels)
 
         it = iter(portal['bounds'])
         for point1, point2 in zip(it, it):
@@ -193,12 +235,16 @@ class UVTTFile(object):
         return portalElem
 
     def composeOccluders(self) -> ET.Element:
+        '''Build up the XML representation of the line of sight elements'''
         occluders = []
+
+        # First the line-of-sight elements, AKA walls
         logging.debug('  {} los elements'.format(
             len(self.data['line_of_sight'])))
         for los in self.data['line_of_sight']:
             occluders.append(self.composeWall(los))
 
+        # Next the portal elements, which may be doors or windows
         logging.debug('  {} portal elements'.format(len(self.data['portals'])))
         for portal in self.data['portals']:
             occluders.append(self.composePortal(portal))
@@ -211,6 +257,7 @@ class UVTTFile(object):
         return elem
 
     def composeLights(self) -> ET.Element:
+        '''Build up the XML representation of the lights'''
         logging.debug('  {} lights'.format(len(self.data['lights'])))
 
         elem = ET.Element('lights')
@@ -242,6 +289,7 @@ class UVTTFile(object):
         return elem
 
     def composeXml(self) -> ET.Element:
+        '''Build up the FGU XML representation of the Universal VTT file'''
         root = ET.Element(
             'root', attrib={'version': '4.1', 'dataversion': '20210302'})
         root.append(self.composeGrid())
@@ -250,16 +298,19 @@ class UVTTFile(object):
         return root
 
     def writePng(self, filepath: Path) -> None:
+        '''Write the image out as a .png file'''
         with filepath.open(mode='wb') as f:
             f.write(self.image)
 
     def writeJpg(self, filepath: Path) -> None:
+        '''Write the image out as a .jpg file'''
         imagebytes = BytesIO(self.image)
         pngimage = Image.open(imagebytes)
         jpgimage = pngimage.convert('RGB')
         jpgimage.save(filepath)
 
     def writeXml(self, filepath: Path) -> None:
+        '''Write out the FGU .xml file for line-of-sight and lighting'''
         xmlTree = self.composeXml()
         xmlStr = minidom.parseString(
             ET.tostring(xmlTree)).toprettyxml(indent="  ")
@@ -267,12 +318,13 @@ class UVTTFile(object):
             f.write(xmlStr)
 
 
-def processFile(filepaths: Tuple[Path, Path, Path, Path]) -> None:
+def processFile(filepaths: Tuple[Path, Path, Path, Path], portalWidthAdjustment: str, portalLengthAdjustment: str) -> None:
     '''Process an individual Universal VTT file'''
     (uvttpath, pngpath, jpgpath, xmlpath) = filepaths
 
     logging.info('Processing {}'.format(uvttpath))
-    uvttfile = UVTTFile(uvttpath)
+    uvttfile = UVTTFile(uvttpath, portalWidthAdjustment,
+                        portalLengthAdjustment)
 
     logging.debug('  Map dimensions: {} grid elements'.format(
         uvttfile.resolution))
@@ -292,7 +344,7 @@ def composeFilePaths(filepath: Path, outputpath: Optional[Path]) -> Tuple[Path, 
     '''Take the input filepath and output the full set of input and output paths
 
     The returned tuple is the input uvtt file, the output png path, the output
-    jpg path, and the output xml path.  
+    jpg path, and the output xml path.
     '''
     vttpath = filepath
 
@@ -304,6 +356,25 @@ def composeFilePaths(filepath: Path, outputpath: Optional[Path]) -> Tuple[Path, 
     xmlpath = Path.joinpath(outputpath, filepath.with_suffix('.xml').name)
 
     return (vttpath, pngpath, jpgpath, xmlpath)
+
+
+class PortalAdjust(argparse.Action):
+    '''Parse the command-line arguments to verify that it is either a percentage, or a pixel count'''
+
+    def __init__(self, option_strings, dest, nargs=None, **kwargs):
+        if nargs != 1:
+            raise ValueError("nargs must be 1")
+        super().__init__(option_strings, dest, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if values[-1] == '%':
+            pass
+        elif values[-2:] == 'px':
+            pass
+        else:
+            raise argparse.ArgumentTypeError('value must be 1-100% or ##px')
+
+        setattr(namespace, self.dest, values)
 
 
 def init_argparse() -> argparse.ArgumentParser:
@@ -320,6 +391,12 @@ def init_argparse() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         '-o', '--output', help='Path to the output directory'
+    )
+    parser.add_argument(
+        '--portalwidth', help='Width of portals', default='25%'
+    )
+    parser.add_argument(
+        '--portallength', help='Additional length to add to portals', default="0px"
     )
     parser.add_argument(
         '-v', '--version', action='version', version=f'{parser.prog} version 1.0.0'
@@ -366,7 +443,7 @@ def main() -> int:
             if not exitcode:
                 return exitcode
 
-        processFile(filepaths)
+        processFile(filepaths, args.portalwidth, args.portallength)
 
     return exitcode
 
