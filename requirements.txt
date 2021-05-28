@@ -1,0 +1,4 @@
+###### Requirements without Version Specifiers ######
+Pillow
+
+###### Requirements with Version Specifiers ######
