@@ -423,7 +423,7 @@ def main() -> int:
         return errno.ENOENT
 
     if not args.files:
-        logging.warn('No files specified')
+        logging.warning('No files specified')
         return errno.EINVAL
 
     for filename in args.files:
