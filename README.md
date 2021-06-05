@@ -38,6 +38,7 @@ This file will cause the program to write the xml file directly out to joesmith'
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
+| alllocaldd2vttfiles | If no files are specified, look for all .dd2vtt files in the current directory and convert them | False |
 | force     | Force overwrite destination files | False |
 | jpgpath   | Path where the .jpg file will be written | Current working directory |
 | pngpath   | Path where the .png file will be written | Current working directory |
