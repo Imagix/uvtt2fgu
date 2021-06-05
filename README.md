@@ -16,18 +16,46 @@ This was last used with Dungeondraft v1.0.1.3.
 3. Run the script as `uvtt2fgu.py sampleMap.dd2vtt`.  This will emit `sampleMap.png`, `sampleMap.jpg`, and `sampleMap.xml` into your current directory
 4. Copy the `sampleMap.xml` file into your campaign's `images` directory
 5. Import the .png or .jpg in FGU
-   
+
+## Configuration File
+The configuration file is a standard .INI format file.  All of the configuration lives in a "[default]" section.  This file is found either in `$HOME/.config/uvtt2fgu.conf`, or the file named in the `-c` command-line parameter.
+
+Example configuration file:
+```
+[default]
+xmlpath=/home/joesmith/.smiteworks/fgdata/campaigns/TestLight/images
+writepng=False
+jpgpath=out
+force=True
+```
+This file will cause the program to write the xml file directly out to joesmith's FGU TestLight campaign's images folder.  It will write the jpg to the "out" subdirectory of where the script is run. It will overwrite the xml and jpg files if they exist.  It will not write out the png file.
+
+### Configuration file parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| force     | Force overwrite destination files | False |
+| jpgpath   | Path where the .jpg file will be written | Current working directory |
+| pngpath   | Path where the .png file will be written | Current working directory |
+| remove    | Remove the source file after conversion | False |
+| writejpg  | Write the .jpg file | True |
+| writepng  | Write the .png file | True |
+| xmlpath   | Path where the .xml file will be written | Current working directory |
+
 ## Command-line
 ```
 usage: uvtt2fgu.py [OPTIONS] [FILES]
 
-Convert Dungeondraft .dd2vtt files to .jpg/.png/.xml for Fantasy Grounds Unity (FGU)
+Convert Dungeondraft .dd2vtt files to .jpg/.png/.xml for Fantasy Grounds Unity
+(FGU)
 
 positional arguments:
   files                 Files to convert to .png + .xml for FGU
 
 optional arguments:
   -h, --help            show this help message and exit
+  -c CONFIG, --config CONFIG
+                        Configuration file
   -f, --force           Force overwrite destination files
   -l {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --log {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         Set the logging level
@@ -37,8 +65,12 @@ optional arguments:
                         Width of portals
   --portallength PORTALLENGTH
                         Additional length to add to portals
+  -r REMOVE, --remove REMOVE
+                        Remove the input dd2vtt file after conversion
   -v, --version         show program's version number and exit
 ```
+
+Parameters specified on the command-line will supersede parameters specified in the configuration file.
 
 By default, the program will not overwrite destination files.  You can use `-f` to force it to overwrite.
 

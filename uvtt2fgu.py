@@ -2,11 +2,13 @@
 
 import argparse
 import base64
+import configparser
 import errno
 from io import BytesIO
 import json
 import logging
 from math import sin, cos
+from os import getenv, remove
 from pathlib import Path
 import sys
 from typing import Optional, Tuple
@@ -14,6 +16,27 @@ from PIL import Image
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
+class ConfigFileData(object):
+    def __init__(self, configFile: str) -> None:
+        if not configFile:
+            configFile = getenv('HOME')
+            configFile += '/.config/uvtt2fgu.conf'
+
+        logging.info('Reading configuration from {}'.format(configFile))
+        config = configparser.ConfigParser()
+
+        config.read(configFile)
+
+        for section in config.sections():
+            self.xmlpath = config[section].get('xmlpath')
+            self.jpgpath = config[section].get('jpgpath')
+            self.writejpg = config[section].getboolean('writejpg', True)
+            self.pngpath = config[section].get('pngpath')
+            self.writepng = config[section].getboolean('writepng', True)
+            self.forceOverwrite = config[section].getboolean('force')
+            self.remove = config[section].getboolean('remove')
+
+configData = None
 
 def composeId(id: int) -> ET.Element:
     '''Converts an int to an XML element 'id' with the value'''
@@ -330,17 +353,22 @@ def processFile(filepaths: Tuple[Path, Path, Path, Path], portalWidthAdjustment:
         uvttfile.resolution))
     logging.debug('  Grid Size: {} pixels'.format(uvttfile.gridsize))
 
-    logging.info('  Writing {}'.format(pngpath))
-    uvttfile.writePng(pngpath)
+    if configData.writepng:
+        logging.info('  Writing {}'.format(pngpath))
+        uvttfile.writePng(pngpath)
 
-    logging.info('  Writing {}'.format(jpgpath))
-    uvttfile.writeJpg(jpgpath)
+    if configData.writejpg:
+        logging.info('  Writing {}'.format(jpgpath))
+        uvttfile.writeJpg(jpgpath)
 
     logging.info('  Writing {}'.format(xmlpath))
     uvttfile.writeXml(xmlpath)
 
+    if configData.remove:
+        remove(uvttpath)
 
-def composeFilePaths(filepath: Path, outputpath: Optional[Path]) -> Tuple[Path, Path, Path, Path]:
+
+def composeFilePaths(filepath: Path) -> Tuple[Path, Path, Path, Path]:
     '''Take the input filepath and output the full set of input and output paths
 
     The returned tuple is the input uvtt file, the output png path, the output
@@ -348,12 +376,9 @@ def composeFilePaths(filepath: Path, outputpath: Optional[Path]) -> Tuple[Path, 
     '''
     vttpath = filepath
 
-    if not outputpath:
-        outputpath = Path('.')
-
-    pngpath = Path.joinpath(outputpath, filepath.with_suffix('.png').name)
-    jpgpath = Path.joinpath(outputpath, filepath.with_suffix('.jpg').name)
-    xmlpath = Path.joinpath(outputpath, filepath.with_suffix('.xml').name)
+    pngpath = Path.joinpath(Path(configData.pngpath), filepath.with_suffix('.png').name)
+    jpgpath = Path.joinpath(Path(configData.jpgpath), filepath.with_suffix('.jpg').name)
+    xmlpath = Path.joinpath(Path(configData.xmlpath), filepath.with_suffix('.xml').name)
 
     return (vttpath, pngpath, jpgpath, xmlpath)
 
@@ -384,6 +409,9 @@ def init_argparse() -> argparse.ArgumentParser:
         description='Convert Dungeondraft .dd2vtt files to .jpg/.png/.xml for Fantasy Grounds Unity (FGU)'
     )
     parser.add_argument(
+        '-c', '--config', help='Configuration file'
+    )
+    parser.add_argument(
         '-f', '--force', help='Force overwrite destination files', action='store_true'
     )
     parser.add_argument(
@@ -399,12 +427,14 @@ def init_argparse() -> argparse.ArgumentParser:
         '--portallength', help='Additional length to add to portals', default="0px"
     )
     parser.add_argument(
-        '-v', '--version', action='version', version=f'{parser.prog} version 1.0.0'
+        '-r', '--remove', help='Remove the input dd2vtt file after conversion'
+    )
+    parser.add_argument(
+        '-v', '--version', action='version', version=f'{parser.prog} version 1.1.0'
     )
     parser.add_argument('files', nargs='*',
                         help='Files to convert to .png + .xml for FGU')
     return parser
-
 
 def main() -> int:
     parser = init_argparse()
@@ -416,10 +446,39 @@ def main() -> int:
     if args.logLevel:
         logging.getLogger().setLevel(getattr(logging, args.logLevel))
 
-    outputpath = args.output if args.output else '.'
+    global configData
+    configData = ConfigFileData(args.config)
 
-    if not Path(outputpath).exists():
-        logging.error('{}: No such file or directory'.format(outputpath))
+    # Merge the config file with the command-line arguments
+    if args.output:
+        configData.xmlpath = args.output
+        configData.pngpath = args.output
+        configData.jpgpath = args.output
+    if not configData.xmlpath:
+        configData.xmlpath = '.'
+    if not configData.pngpath:
+        configData.pngpath = '.'
+    if not configData.jpgpath:
+        configData.jpgpath = '.'
+    if args.force:
+        configData.forceOverwrite = args.force
+    if not configData.forceOverwrite:
+        configData.forceOverwrite = False
+    if args.remove:
+        configData.remove = args.remove
+    if not configData.remove:
+        configData.remove = False
+
+    # Verify that the destination directories exist (if we are writing that
+    # file)
+    if not Path(configData.xmlpath).exists():
+        logging.error('{}: No such file or directory'.format(configData.xmlpath))
+        return errno.ENOENT
+    if not Path(configData.pngpath).exists() and configData.writepng:
+        logging.error('{}: No such file or directory'.format(configData.pngpath))
+        return errno.ENOENT
+    if not Path(configData.jpgpath).exists() and configData.writejpg:
+        logging.error('{}: No such file or directory'.format(configData.jpgpath))
         return errno.ENOENT
 
     if not args.files:
@@ -427,7 +486,7 @@ def main() -> int:
         return errno.EINVAL
 
     for filename in args.files:
-        filepaths = composeFilePaths(Path(filename), Path(outputpath))
+        filepaths = composeFilePaths(Path(filename))
 
         # Verify that the source file exists, and the destination path exists
         if not filepaths[0].exists():
@@ -436,7 +495,7 @@ def main() -> int:
             exitcode = errno.ENOENT
             continue
 
-        if not args.force:
+        if not configData.forceOverwrite:
             for filepath in filepaths[1:]:
                 if filepath.exists():
                     logging.error(
