@@ -19,13 +19,20 @@ from xml.dom import minidom
 class ConfigFileData(object):
     def __init__(self, configFile: str) -> None:
         if not configFile:
-            configFile = getenv('HOME')
-            configFile += '/.config/uvtt2fgu.conf'
+            configFile = Path.home() / '.config' / 'uvtt2fgu.conf'
 
         logging.info('Reading configuration from {}'.format(configFile))
         config = configparser.ConfigParser()
 
         config.read(configFile)
+
+        self.xmlpath = None
+        self.jpgpath = None
+        self.writejpg = True
+        self.pngpath = None
+        self.writepng = True
+        self.forceOverwrite = None
+        self.remove = None
 
         for section in config.sections():
             self.xmlpath = config[section].get('xmlpath')

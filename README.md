@@ -4,6 +4,10 @@ Utility to extract Fantasy Grounds Unity Line-of-sight and lighting files from a
 This program works with Fantasy Grounds Unity v4.1 or higher as that is the version where dynamic lighting effects were added.
 This was last used with Dungeondraft v1.0.1.3.
 
+## Requirements
+
+uvtt2fgu.py requires a python3 installation with PIP.
+
 ## Usage
 1. Create your map in Dungeondraft
 2. Export the map in Universal VTT format
@@ -18,7 +22,7 @@ This was last used with Dungeondraft v1.0.1.3.
 5. Import the .png or .jpg in FGU
 
 ## Configuration File
-The configuration file is a standard .INI format file.  All of the configuration lives in a "[default]" section.  This file is found either in `$HOME/.config/uvtt2fgu.conf`, or the file named in the `-c` command-line parameter.
+The configuration file is a standard .INI format file.  All of the configuration lives in a "[default]" section.  This file is found either in `$HOME/.config/uvtt2fgu.conf`, or `%USERPROFILE%\.config\uvtt2fgu.conf` on Windows,  or the file named in the `-c` command-line parameter.
 
 Example configuration file:
 ```
