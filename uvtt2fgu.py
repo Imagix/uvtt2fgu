@@ -33,6 +33,7 @@ class ConfigFileData(object):
         self.writepng = True
         self.forceOverwrite = None
         self.remove = None
+        self.alllocaldd2vttfiles = False
 
         for section in config.sections():
             self.xmlpath = config[section].get('xmlpath')
@@ -42,6 +43,7 @@ class ConfigFileData(object):
             self.writepng = config[section].getboolean('writepng', True)
             self.forceOverwrite = config[section].getboolean('force')
             self.remove = config[section].getboolean('remove')
+            self.alllocaldd2vttfiles = config[section].getboolean('alllocaldd2vttfiles')
 
 configData = None
 
@@ -489,8 +491,12 @@ def main() -> int:
         return errno.ENOENT
 
     if not args.files:
-        logging.warning('No files specified')
-        return errno.EINVAL
+        if not configData.alllocaldd2vttfiles:
+            logging.warning('No files specified')
+            return errno.EINVAL
+        else:
+            cwd = Path('.')
+            args.files = list(cwd.glob('*.dd2vtt'))
 
     for filename in args.files:
         filepaths = composeFilePaths(Path(filename))
