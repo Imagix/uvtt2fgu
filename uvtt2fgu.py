@@ -10,6 +10,7 @@ import logging
 from math import sin, cos
 from os import getenv, remove
 from pathlib import Path
+import platform
 import sys
 from typing import Optional, Tuple
 from PIL import Image
@@ -19,7 +20,7 @@ from xml.dom import minidom
 class ConfigFileData(object):
     def __init__(self, configFile: str) -> None:
         if not configFile:
-            configFile = Path.home() / '.config' / 'uvtt2fgu.conf'
+            configFile = self.configFilePath() / 'uvtt2fgu.conf'
 
         logging.info('Reading configuration from {}'.format(configFile))
         config = configparser.ConfigParser()
@@ -44,6 +45,23 @@ class ConfigFileData(object):
             self.forceOverwrite = config[section].getboolean('force')
             self.remove = config[section].getboolean('remove')
             self.alllocaldd2vttfiles = config[section].getboolean('alllocaldd2vttfiles')
+
+    def configFilePath(self) -> Path:
+        myPlatform = platform.system()
+
+        if myPlatform == 'Windows':
+            platformPath = Path(getenv('APPDATA')) / 'uvtt2fgu'
+        elif myPlatform == 'Darwin':
+            platformPath = Path(getenv('HOME')) / 'Library' / 'Preferences' / 'uvtt2fgu'
+        elif myPlatform == 'Linux':
+            xdgConfigHome = getenv('XDG_CONFIG_HOME')
+
+            if xdgConfigHome:
+                platformPath = Path(xdgConfigHome)
+            else:
+                platformPath = Path(getenv('HOME')) / '.config'
+
+        return platformPath
 
 configData = None
 

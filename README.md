@@ -22,7 +22,14 @@ uvtt2fgu.py requires a python3 installation with PIP.
 5. Import the .png or .jpg in FGU
 
 ## Configuration File
-The configuration file is a standard .INI format file.  All of the configuration lives in a "[default]" section.  This file is found either in `$HOME/.config/uvtt2fgu.conf`, or `%USERPROFILE%\.config\uvtt2fgu.conf` on Windows,  or the file named in the `-c` command-line parameter.
+The configuration file is a standard .INI format file.  All of the configuration lives in a "[default]" section.  This file is found In various places:
+| Platform | Location |
+|----------|----------|
+| Windows | %APPDATA%\uvtt2fgu\uvtt2fgu.conf |
+| Mac OS | $HOME/Library/Preferences/uvtt2fgu/uvtt2fgu.conf |
+| Linux | $XDG_CONFIG_HOME/uvtt2fgu.conf<br>$HOME/.config/uvtt2fgu.conf |
+
+ The file named in the `-c` command-line parameter overrides this search.  For Linux, it uses the XDG_CONFIG_HOME version if that environment variable is set, otherwise use the $HOME version.
 
 Example configuration file:
 ```
