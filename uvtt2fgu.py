@@ -222,6 +222,9 @@ class UVTTFile(object):
             self.data = json.load(f)
 
         mapsize = self.data['resolution']['map_size']
+        self.originX = self.data['resolution']['map_origin']['x']
+        self.originY = self.data['resolution']['map_origin']['y']
+        logging.debug('  Origin: {},{}'.format(self.originX, self.originY))
         self.resolution = (mapsize['x'], mapsize['y'])
         self.gridsize = self.data['resolution']['pixels_per_grid']
         self.image = base64.decodebytes(self.data['image'].encode('utf-8'))
@@ -240,11 +243,11 @@ class UVTTFile(object):
 
     def translateX(self, x_coord) -> float:
         '''Translate from an X grid coordinate to an X pixel coordinate'''
-        return self.translateCoord(x_coord, -self.resolution[0])
+        return self.translateCoord(x_coord - self.originX, -self.resolution[0])
 
     def translateY(self, y_coord) -> float:
         '''Translate from a Y grid coordinate to a Y pixel coordinate'''
-        return self.translateCoord(-y_coord, self.resolution[1])
+        return self.translateCoord(-(y_coord - self.originY), self.resolution[1])
 
     def translatePoint(self, coord) -> Point:
         '''Translate an x, y element from the uvtt data to a Point'''
@@ -457,11 +460,15 @@ def init_argparse() -> argparse.ArgumentParser:
         '-r', '--remove', help='Remove the input dd2vtt file after conversion'
     )
     parser.add_argument(
-        '-v', '--version', action='version', version=f'{parser.prog} version 1.1.0'
+        '-v', '--version', action='version', version=f'{parser.prog} version 1.2.0'
     )
     parser.add_argument('files', nargs='*',
                         help='Files to convert to .png + .xml for FGU')
     return parser
+
+def loadConfigData(configFile: str) -> None:
+    global configData
+    configData = ConfigFileData(configFile)
 
 def main() -> int:
     parser = init_argparse()
@@ -473,8 +480,7 @@ def main() -> int:
     if args.logLevel:
         logging.getLogger().setLevel(getattr(logging, args.logLevel))
 
-    global configData
-    configData = ConfigFileData(args.config)
+    loadConfigData(args.config)
 
     # Merge the config file with the command-line arguments
     if args.output:

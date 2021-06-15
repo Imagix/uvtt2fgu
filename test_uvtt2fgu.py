@@ -7,10 +7,17 @@ import uvtt2fgu
 
 
 class TestComposeFilePaths(unittest.TestCase):
+    def setUp(self) -> None:
+        uvtt2fgu.loadConfigData(None)
+        uvtt2fgu.__dict__['configData'].xmlpath = '.'
+        uvtt2fgu.configData.pngpath = '.'
+        uvtt2fgu.configData.jpgpath = '.'
+        return super().setUp()
+
     def test_fileonly(self) -> None:
         '''Test with a filename, and no output directory specified'''
         (uvttpath, pngpath, jpgpath, xmlpath) = uvtt2fgu.composeFilePaths(
-            Path('filename.dd2vtt'), None)
+            Path('filename.dd2vtt'))
         self.assertEqual(uvttpath, Path('filename.dd2vtt'))
         self.assertEqual(pngpath, Path('filename.png'))
         self.assertEqual(jpgpath, Path('filename.jpg'))
@@ -19,7 +26,7 @@ class TestComposeFilePaths(unittest.TestCase):
     def test_filewithpath(self) -> None:
         '''Test with a filename with a relative path, and no output directory specified'''
         (uvttpath, pngpath, jpgpath, xmlpath) = uvtt2fgu.composeFilePaths(
-            Path('abc/filename.dd2vtt'), None)
+            Path('abc/filename.dd2vtt'))
         self.assertEqual(uvttpath, Path('abc/filename.dd2vtt'))
         self.assertEqual(pngpath, Path('filename.png'))
         self.assertEqual(jpgpath, Path('filename.jpg'))
@@ -27,21 +34,27 @@ class TestComposeFilePaths(unittest.TestCase):
 
     def test_filewithoutputpath(self) -> None:
         '''Test with a filename, and an output directory specified'''
+        uvtt2fgu.configData.xmlpath = 'd1x'
+        uvtt2fgu.configData.jpgpath = 'd2x'
+        uvtt2fgu.configData.pngpath = 'd3x'
         (uvttpath, pngpath, jpgpath, xmlpath) = uvtt2fgu.composeFilePaths(
-            Path('filename.dd2vtt'), Path('xyz'))
+            Path('filename.dd2vtt'))
         self.assertEqual(uvttpath, Path('filename.dd2vtt'))
-        self.assertEqual(pngpath, Path('xyz/filename.png'))
-        self.assertEqual(jpgpath, Path('xyz/filename.jpg'))
-        self.assertEqual(xmlpath, Path('xyz/filename.xml'))
+        self.assertEqual(pngpath, Path('d3x/filename.png'))
+        self.assertEqual(jpgpath, Path('d2x/filename.jpg'))
+        self.assertEqual(xmlpath, Path('d1x/filename.xml'))
 
     def test_filewithpathwithoutputpath(self) -> None:
         '''Test with a filename with a relative path, and an output directory specified'''
+        uvtt2fgu.configData.xmlpath = 'd1x'
+        uvtt2fgu.configData.jpgpath = 'd2x'
+        uvtt2fgu.configData.pngpath = 'd3x'
         (uvttpath, pngpath, jpgpath, xmlpath) = uvtt2fgu.composeFilePaths(
-            Path('abc/filename.dd2vtt'), Path('xyz'))
+            Path('abc/filename.dd2vtt'))
         self.assertEqual(uvttpath, Path('abc/filename.dd2vtt'))
-        self.assertEqual(pngpath, Path('xyz/filename.png'))
-        self.assertEqual(jpgpath, Path('xyz/filename.jpg'))
-        self.assertEqual(xmlpath, Path('xyz/filename.xml'))
+        self.assertEqual(pngpath, Path('d3x/filename.png'))
+        self.assertEqual(jpgpath, Path('d2x/filename.jpg'))
+        self.assertEqual(xmlpath, Path('d1x/filename.xml'))
 
 class TestPortalAdjust(unittest.TestCase):
     def test_percent(self) -> None:
