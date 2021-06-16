@@ -297,6 +297,12 @@ class UVTTFile(object):
         for los in self.data['line_of_sight']:
             occluders.append(self.composeWall(los))
 
+        objectsLoS = self.data.get('objects_line_of_sight', [])
+
+        logging.debug('  {} object los elements'.format(len(objectsLoS)))
+        for los in objectsLoS:
+            occluders.append(self.composeWall(los))
+
         # Next the portal elements, which may be doors or windows
         logging.debug('  {} portal elements'.format(len(self.data['portals'])))
         for portal in self.data['portals']:
@@ -460,7 +466,7 @@ def init_argparse() -> argparse.ArgumentParser:
         '-r', '--remove', help='Remove the input dd2vtt file after conversion'
     )
     parser.add_argument(
-        '-v', '--version', action='version', version=f'{parser.prog} version 1.2.0'
+        '-v', '--version', action='version', version=f'{parser.prog} version 1.3.0'
     )
     parser.add_argument('files', nargs='*',
                         help='Files to convert to .png + .xml for FGU')
