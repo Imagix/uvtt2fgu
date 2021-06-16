@@ -2,7 +2,7 @@
 Utility to extract Fantasy Grounds Unity Line-of-sight and lighting files from a Univeral VTT file exported from Dungeondraft
 
 This program works with Fantasy Grounds Unity v4.1 or higher as that is the version where dynamic lighting effects were added.
-This was last used with Dungeondraft v1.0.1.3.
+This was last used with Dungeondraft v1.0.2.1 Beta.
 
 ## Requirements
 
