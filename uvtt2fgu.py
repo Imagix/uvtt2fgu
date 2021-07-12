@@ -75,9 +75,8 @@ def composeId(id: int) -> ET.Element:
 class Point(object):
     def __init__(self, x: float, y: float):
         # FGU only wants 1 decimal point
-        self.x = round(x, 1)
-        self.y = round(y, 1)
-
+        self.x = int(round(x, 1))
+        self.y = int(round(y, 1))
 
 def translatePortalAdjustment(gridsize: int, adjustment: str) -> float:
     '''Converts from the adjustment value to the actual pixel count
@@ -240,7 +239,7 @@ class UVTTFile(object):
 
     def translateCoord(self, coord, dimension) -> float:
         '''Translate from a grid coordinate to a pixel coordinate'''
-        return coord * self.gridsize + (dimension * self.gridsize) // 2
+        return int(round(coord * self.gridsize + (dimension * self.gridsize) // 2, 1))
 
     def translateX(self, x_coord) -> float:
         '''Translate from an X grid coordinate to an X pixel coordinate'''
