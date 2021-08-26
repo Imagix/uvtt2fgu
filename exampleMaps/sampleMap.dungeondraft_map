@@ -130,15 +130,23 @@
 
 				]
 			},
-			"object_library_memory": null,
-			"scatter_library_memory": null
+			"object_library_memory": {
+				"mode": "all",
+				"scroll": 938.875,
+				"selected": [
+					"res://textures/objects/structures/pillars/pillar_stone_33.png"
+				],
+				"search_strictness": 0.5
+			},
+			"scatter_library_memory": null,
+			"sharpen_fonts": true
 		}
 	},
 	"world": {
 		"format": 3,
 		"width": 12,
 		"height": 11,
-		"next_node_id": "6",
+		"next_node_id": "8",
 		"next_prefab_id": "0",
 		"msi": {
 			"offset_map_size": 512,
@@ -158,7 +166,7 @@
 			"0": {
 				"label": "Ground",
 				"environment": {
-					"baked_lighting": true,
+					"baked_lighting": false,
 					"ambient_light": "ffffffff"
 				},
 				"layers": {
@@ -427,7 +435,30 @@
 
 				],
 				"objects": [
-
+					{
+						"position": "Vector2( 1408, 768 )",
+						"rotation": 0,
+						"scale": "Vector2( 1, 1 )",
+						"mirror": false,
+						"texture": "res://textures/objects/furniture/tables/small_table_04.png",
+						"layer": 100,
+						"shadow": true,
+						"block_light": false,
+						"custom_color": "ff6b3834",
+						"node_id": "6"
+					},
+					{
+						"position": "Vector2( 1536, 2304 )",
+						"rotation": 0,
+						"scale": "Vector2( 1, 1 )",
+						"mirror": false,
+						"texture": "res://textures/objects/structures/pillars/pillar_stone_33.png",
+						"layer": 100,
+						"shadow": true,
+						"block_light": true,
+						"custom_color": "ff6b3834",
+						"node_id": "7"
+					}
 				],
 				"lights": [
 					{
