@@ -73,10 +73,10 @@ def composeId(id: int) -> ET.Element:
 
 
 class Point(object):
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-
+    def __init__(self, x: float, y: float):
+        # FGU only wants 1 decimal point
+        self.x = round(x, 1)
+        self.y = round(y, 1)
 
 def translatePortalAdjustment(gridsize: int, adjustment: str) -> float:
     '''Converts from the adjustment value to the actual pixel count
@@ -239,7 +239,7 @@ class UVTTFile(object):
 
     def translateCoord(self, coord, dimension) -> float:
         '''Translate from a grid coordinate to a pixel coordinate'''
-        return coord * self.gridsize + (dimension * self.gridsize) // 2
+        return round(coord * self.gridsize + (dimension * self.gridsize) // 2, 1)
 
     def translateX(self, x_coord) -> float:
         '''Translate from an X grid coordinate to an X pixel coordinate'''
@@ -460,7 +460,7 @@ def init_argparse() -> argparse.ArgumentParser:
         '-r', '--remove', help='Remove the input dd2vtt file after conversion'
     )
     parser.add_argument(
-        '-v', '--version', action='version', version=f'{parser.prog} version 1.2.0'
+        '-v', '--version', action='version', version=f'{parser.prog} version 1.2.1'
     )
     parser.add_argument('files', nargs='*',
                         help='Files to convert to .png + .xml for FGU')
