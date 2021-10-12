@@ -35,6 +35,7 @@ class ConfigFileData(object):
         self.forceOverwrite = None
         self.remove = None
         self.alllocaldd2vttfiles = False
+        self.objectsAreTerrain = False
 
         for section in config.sections():
             self.xmlpath = config[section].get('xmlpath')
@@ -45,6 +46,7 @@ class ConfigFileData(object):
             self.forceOverwrite = config[section].getboolean('force')
             self.remove = config[section].getboolean('remove')
             self.alllocaldd2vttfiles = config[section].getboolean('alllocaldd2vttfiles')
+            self.objectsAreTerrain = config[section].getboolean('objectsareterrain')
 
     def configFilePath(self) -> Path:
         myPlatform = platform.system()
@@ -154,6 +156,36 @@ class UVTTFile(object):
                 pt.append(str(point.y))
             pointsElem.text = ','.join(pt)
             elem.append(pointsElem)
+
+            return elem
+
+    class ObjectOccluder(Occluder):
+        '''Represents an Object Occluder'''
+        def __init__(self, objectsAreTerrain):
+            super().__init__()
+            self.objectsAreTerrain = objectsAreTerrain
+
+        def xmlElem(self, id) -> ET.Element:
+            '''Build up the XML representation of a wall'''
+            elem = self.xmlElemStart(id)
+
+            logging.debug('  Occluder(Object) {} {} points'.format(id, len(self.points)))
+            pointsElem = ET.Element('points')
+            pt = []
+            for point in self.points:
+                pt.append(str(point.x))
+                pt.append(str(point.y))
+            pointsElem.text = ','.join(pt)
+            elem.append(pointsElem)
+
+            if self.objectsAreTerrain:
+                elem.append(ET.Element('terrain'))
+                elem.append(ET.Element('hidden'))
+                elem.append(ET.Element('single_sided'))
+                elem.append(ET.Element('allow_move'))
+                elem.append(ET.Element('closed'))
+                elem.append(ET.Element('counterclockwise'))
+                elem.append(ET.Element('toggleable'))
 
             return elem
 
@@ -268,6 +300,15 @@ class UVTTFile(object):
 
         return wall
 
+    def composeObject(self, los) -> Occluder:
+        '''Build up an Occluder representation of an object'''
+        object = self.ObjectOccluder(configData.objectsAreTerrain)
+
+        for coord in los:
+            object.addPoint(self.translatePoint(coord))
+
+        return object
+
     def composePortal(self, portal) -> Occluder:
         '''Build up an Occluder representation of one portal
         
@@ -301,7 +342,7 @@ class UVTTFile(object):
 
         logging.debug('  {} object los elements'.format(len(objectsLoS)))
         for los in objectsLoS:
-            occluders.append(self.composeWall(los))
+            occluders.append(self.composeObject(los))
 
         # Next the portal elements, which may be doors or windows
         logging.debug('  {} portal elements'.format(len(self.data['portals'])))
@@ -466,7 +507,7 @@ def init_argparse() -> argparse.ArgumentParser:
         '-r', '--remove', help='Remove the input dd2vtt file after conversion'
     )
     parser.add_argument(
-        '-v', '--version', action='version', version=f'{parser.prog} version 1.3.0'
+        '-v', '--version', action='version', version=f'{parser.prog} version 1.4.0 Beta'
     )
     parser.add_argument('files', nargs='*',
                         help='Files to convert to .png + .xml for FGU')

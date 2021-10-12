@@ -2,7 +2,7 @@
 Utility to extract Fantasy Grounds Unity Line-of-sight and lighting files from a Univeral VTT file exported from Dungeondraft
 
 This program works with Fantasy Grounds Unity v4.1 or higher as that is the version where dynamic lighting effects were added.
-This was last used with Dungeondraft v1.0.2.1 Beta.
+This was last used with Dungeondraft v1.0.2.4.
 
 ## Requirements
 
@@ -48,6 +48,7 @@ This file will cause the program to write the xml file directly out to joesmith'
 | alllocaldd2vttfiles | If no files are specified, look for all .dd2vtt files in the current directory and convert them | False |
 | force     | Force overwrite destination files | False |
 | jpgpath   | Path where the .jpg file will be written | Current working directory |
+| objectsareterrain | Use a terrain LoS blocker instead of wall blocker for objects | False |
 | pngpath   | Path where the .png file will be written | Current working directory |
 | remove    | Remove the source file after conversion | False |
 | writejpg  | Write the .jpg file | True |
