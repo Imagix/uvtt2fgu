@@ -48,7 +48,7 @@ This file will cause the program to write the xml file directly out to joesmith'
 | alllocaldd2vttfiles | If no files are specified, look for all .dd2vtt files in the current directory and convert them | False |
 | force     | Force overwrite destination files | False |
 | jpgpath   | Path where the .jpg file will be written | Current working directory |
-| objectsareterrain | Use a terrain LoS blocker instead of wall blocker for objects | False |
+| objectsareterrain | Use a terrain LoS blocker instead of wall blocker for objects | True |
 | pngpath   | Path where the .png file will be written | Current working directory |
 | remove    | Remove the source file after conversion | False |
 | writejpg  | Write the .jpg file | True |
