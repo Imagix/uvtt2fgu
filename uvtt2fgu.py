@@ -35,7 +35,7 @@ class ConfigFileData(object):
         self.forceOverwrite = None
         self.remove = None
         self.alllocaldd2vttfiles = False
-        self.objectsAreTerrain = False
+        self.objectsAreTerrain = True
 
         for section in config.sections():
             self.xmlpath = config[section].get('xmlpath')
@@ -507,7 +507,7 @@ def init_argparse() -> argparse.ArgumentParser:
         '-r', '--remove', help='Remove the input dd2vtt file after conversion'
     )
     parser.add_argument(
-        '-v', '--version', action='version', version=f'{parser.prog} version 1.4.0 Beta'
+        '-v', '--version', action='version', version=f'{parser.prog} version 1.4.0'
     )
     parser.add_argument('files', nargs='*',
                         help='Files to convert to .png + .xml for FGU')
