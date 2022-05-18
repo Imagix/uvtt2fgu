@@ -39,6 +39,7 @@ class ConfigFileData(object):
         self.jpgQuality = 75
         self.jpgOptimize = True
         self.jpgSubsampling = 2
+        self.maxImageFileSize = None
 
         for section in config.sections():
             self.xmlpath = config[section].get('xmlpath')
@@ -53,6 +54,7 @@ class ConfigFileData(object):
             self.jpgQuality = config[section].getint('jpgquality')
             self.jpgOptimize = config[section].getboolean('jpgoptimize')
             self.jpgSubsampling = config[section].getint('jpgsubsampling')
+            self.maxImageFileSize = config[section].get('maximagefilesize')
 
     def configFilePath(self) -> Path:
         myPlatform = platform.system()
@@ -517,7 +519,7 @@ def init_argparse() -> argparse.ArgumentParser:
         '-r', '--remove', help='Remove the input dd2vtt file after conversion'
     )
     parser.add_argument(
-        '-v', '--version', action='version', version=f'{parser.prog} version 1.4.0'
+        '-v', '--version', action='version', version=f'{parser.prog} version 1.5.0'
     )
     parser.add_argument('files', nargs='*',
                         help='Files to convert to .png + .xml for FGU')
@@ -578,6 +580,12 @@ def main() -> int:
         else:
             cwd = Path('.')
             args.files = list(cwd.glob('*.dd2vtt'))
+
+    if configData.maxImageFileSize is not None:
+        if configData.maxImageFileSize == 0:
+            Image.MAX_IMAGE_PIXELS = None
+        else:
+            Image.MAX_IMAGE_PIXELS = int(configData.maxImageFileSize)
 
     for filename in args.files:
         filepaths = composeFilePaths(Path(filename))
