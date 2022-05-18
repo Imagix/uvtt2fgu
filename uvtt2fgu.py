@@ -36,6 +36,7 @@ class ConfigFileData(object):
         self.remove = None
         self.alllocaldd2vttfiles = False
         self.objectsAreTerrain = True
+        self.maxImageFileSize = None
 
         for section in config.sections():
             self.xmlpath = config[section].get('xmlpath')
@@ -47,6 +48,7 @@ class ConfigFileData(object):
             self.remove = config[section].getboolean('remove')
             self.alllocaldd2vttfiles = config[section].getboolean('alllocaldd2vttfiles')
             self.objectsAreTerrain = config[section].getboolean('objectsareterrain')
+            self.maxImageFileSize = config[section].get('maximagefilesize')
 
     def configFilePath(self) -> Path:
         myPlatform = platform.system()
@@ -507,7 +509,7 @@ def init_argparse() -> argparse.ArgumentParser:
         '-r', '--remove', help='Remove the input dd2vtt file after conversion'
     )
     parser.add_argument(
-        '-v', '--version', action='version', version=f'{parser.prog} version 1.4.0'
+        '-v', '--version', action='version', version=f'{parser.prog} version 1.5.0b'
     )
     parser.add_argument('files', nargs='*',
                         help='Files to convert to .png + .xml for FGU')
@@ -568,6 +570,12 @@ def main() -> int:
         else:
             cwd = Path('.')
             args.files = list(cwd.glob('*.dd2vtt'))
+
+    if configData.maxImageFileSize is not None:
+        if configData.maxImageFileSize == 0:
+            Image.MAX_IMAGE_PIXELS = None
+        else:
+            Image.MAX_IMAGE_PIXELS = int(configData.maxImageFileSize)
 
     for filename in args.files:
         filepaths = composeFilePaths(Path(filename))
