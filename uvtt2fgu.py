@@ -30,6 +30,9 @@ class ConfigFileData(object):
         self.xmlpath = None
         self.jpgpath = None
         self.writejpg = True
+        self.jpgQuality = 90
+        self.jpgOptimize = True
+        self.jpgSubsampling = 2
         self.pngpath = None
         self.writepng = True
         self.forceOverwrite = None
@@ -40,6 +43,9 @@ class ConfigFileData(object):
         for section in config.sections():
             self.xmlpath = config[section].get('xmlpath')
             self.jpgpath = config[section].get('jpgpath')
+            self.jpgQuality = config[section].get('jpgquality')
+            self.jpgOptimize = config[section].get('jpgoptimize')
+            self.jpgSubsampling = config[section].get('jpgsubsampling')
             self.writejpg = config[section].getboolean('writejpg', True)
             self.pngpath = config[section].get('pngpath')
             self.writepng = config[section].getboolean('writepng', True)
@@ -407,7 +413,11 @@ class UVTTFile(object):
         imagebytes = BytesIO(self.image)
         pngimage = Image.open(imagebytes)
         jpgimage = pngimage.convert('RGB')
-        jpgimage.save(filepath)
+        jpgimage.save(
+            filepath, 
+            quality=configData.jpgQuality, 
+            subsampling=configData.jpgSubsampling, 
+            optimize=configData.jpgOptimize)
 
     def writeXml(self, filepath: Path) -> None:
         '''Write out the FGU .xml file for line-of-sight and lighting'''
