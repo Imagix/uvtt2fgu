@@ -36,6 +36,9 @@ class ConfigFileData(object):
         self.remove = None
         self.alllocaldd2vttfiles = False
         self.objectsAreTerrain = True
+        self.jpgQuality = 75
+        self.jpgOptimize = True
+        self.jpgSubsampling = 2
 
         for section in config.sections():
             self.xmlpath = config[section].get('xmlpath')
@@ -47,6 +50,9 @@ class ConfigFileData(object):
             self.remove = config[section].getboolean('remove')
             self.alllocaldd2vttfiles = config[section].getboolean('alllocaldd2vttfiles')
             self.objectsAreTerrain = config[section].getboolean('objectsareterrain')
+            self.jpgQuality = config[section].getint('jpgquality')
+            self.jpgOptimize = config[section].getboolean('jpgoptimize')
+            self.jpgSubsampling = config[section].getint('jpgsubsampling')
 
     def configFilePath(self) -> Path:
         myPlatform = platform.system()
@@ -407,7 +413,11 @@ class UVTTFile(object):
         imagebytes = BytesIO(self.image)
         pngimage = Image.open(imagebytes)
         jpgimage = pngimage.convert('RGB')
-        jpgimage.save(filepath)
+        jpgimage.save(
+            filepath,
+            quality=configData.jpgQuality,
+            subsampling=configData.jpgSubsampling,
+            optimize=configData.jpgOptimize)
 
     def writeXml(self, filepath: Path) -> None:
         '''Write out the FGU .xml file for line-of-sight and lighting'''

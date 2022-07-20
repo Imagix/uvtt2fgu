@@ -54,6 +54,9 @@ This file will cause the program to write the xml file directly out to joesmith'
 | writejpg  | Write the .jpg file | True |
 | writepng  | Write the .png file | True |
 | xmlpath   | Path where the .xml file will be written | Current working directory |
+| jpgOptimize | Indicate if the JPG output should be optimized | True
+| jpgQuality | Value of the JPG output quality, 0 (worst) - 100 (best) | 75
+| jpgSubsampling | Use pixel subsampling to reduce JPG image size, 0 (off) - 2 | 2
 
 ## Command-line
 ```
