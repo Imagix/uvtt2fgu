@@ -2,7 +2,7 @@
 Utility to extract Fantasy Grounds Unity Line-of-sight and lighting files from a Univeral VTT file exported from Dungeondraft
 
 This program works with Fantasy Grounds Unity v4.1 or higher as that is the version where dynamic lighting effects were added.
-This was last used with Dungeondraft v1.0.2.4.
+This was last used with Dungeondraft v1.0.3.2 and Fantasy Grounds Unity v4.2.2. A [forum thread](https://www.fantasygrounds.com/forums/showthread.php?68774-A-new-Dungeondraft-to-Fantasy-Grounds-Unity-conversion-tool) is available for discussion.
 
 ## Requirements
 
@@ -99,8 +99,10 @@ By default, the files are all written into your current directory.  You can use 
 
 ## Acknowledgements
 
-[<img src="assets/dungeondraft_icon.png" width=32 height=32/>](https://dungeondraft.net/) [Dungeondraft](https://dungeondraft.net/) is a map drawing tool.  Dungeondraft is produced by Megasploot.
+[<img src="assets/dungeondraft_icon.png" width=32 height=32/>](https://dungeondraft.net/) [Dungeondraft](https://dungeondraft.net/) is a map drawing tool.
+Dungeondraft is produced by Megasploot.
 
-[Fantasy Grounds Unity](https://www.fantasygrounds.com) is a Virtual TableTop program for playing many different table-top Role Playing Games (TTRPG), virtually.  FGU is produced by SmiteWorks USA LLC.
+[<img src="https://www.fantasygrounds.com/img/FG35.png" width=32 height=32/>](https://www.fantasygrounds.com) [Fantasy Grounds Unity](https://www.fantasygrounds.com) is a Virtual TableTop program for playing many different table-top Role Playing Games (TTRPG), virtually.
+FGU is produced by SmiteWorks USA LLC.
 
 uvtt2vtt.py is not endorsed by either of these companies, it is a community-effort to make these two programs interoperable.
