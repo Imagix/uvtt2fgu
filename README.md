@@ -100,7 +100,7 @@ By default, the files are all written into your current directory.  You can use 
 ## Acknowledgements
 
 [<img src="assets/dungeondraft_icon.png" width=32 height=32/>](https://dungeondraft.net/) [Dungeondraft](https://dungeondraft.net/) is a map drawing tool.
-Dungeondraft is produced by Megasploot.
+Dungeondraft is produced by [Megasploot](https://www.megasploot.com/), a project of [Tailwind Games, LLC](https://www.tailwindgames.com/).
 
 [<img src="https://www.fantasygrounds.com/img/FG35.png" width=32 height=32/>](https://www.fantasygrounds.com) [Fantasy Grounds Unity](https://www.fantasygrounds.com) is a Virtual TableTop program for playing many different table-top Role Playing Games (TTRPG), virtually.
 FGU is produced by SmiteWorks USA LLC.
