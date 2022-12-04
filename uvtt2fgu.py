@@ -51,9 +51,9 @@ class ConfigFileData(object):
             self.remove = config[section].getboolean('remove')
             self.alllocaldd2vttfiles = config[section].getboolean('alllocaldd2vttfiles')
             self.objectsAreTerrain = config[section].getboolean('objectsareterrain')
-            self.jpgQuality = config[section].getint('jpgquality')
-            self.jpgOptimize = config[section].getboolean('jpgoptimize')
-            self.jpgSubsampling = config[section].getint('jpgsubsampling')
+            self.jpgQuality = config[section].getint('jpgquality', 75)
+            self.jpgOptimize = config[section].getboolean('jpgoptimize', True)
+            self.jpgSubsampling = config[section].getint('jpgsubsampling', 2)
             self.maxImageFileSize = config[section].get('maximagefilesize')
 
     def configFilePath(self) -> Path:
@@ -519,7 +519,7 @@ def init_argparse() -> argparse.ArgumentParser:
         '-r', '--remove', help='Remove the input dd2vtt file after conversion'
     )
     parser.add_argument(
-        '-v', '--version', action='version', version=f'{parser.prog} version 1.5.0'
+        '-v', '--version', action='version', version=f'{parser.prog} version 1.5.1'
     )
     parser.add_argument('files', nargs='*',
                         help='Files to convert to .png + .xml for FGU')
